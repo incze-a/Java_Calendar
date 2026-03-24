@@ -3,10 +3,10 @@ Content-Type: application/json
 
 {
   "title": "Lecture",
-  "dayOfWeek": "WEDNESDAY",
-  "startTime": "12:00",
-  "endTime": "14:00",
-  "color": "PURPLE"
+  "dayOfWeek": "TUESDAY",
+  "startTime": "08:00",
+  "endTime": "20:00",
+  "color": "#e03674"
 }
 
 ###

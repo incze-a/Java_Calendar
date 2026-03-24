@@ -2,6 +2,7 @@ package SD.nCalendar.controller;
 
 import SD.nCalendar.model.RecurringScheduleBlock;
 import SD.nCalendar.service.ScheduleService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,8 +17,13 @@ public class ScheduleController {
     }
 
     @PostMapping
-    public RecurringScheduleBlock addBlock(@RequestBody RecurringScheduleBlock block) {
-        return scheduleService.addBlock(block);
+    public ResponseEntity<String> addBlock(@RequestBody RecurringScheduleBlock block) {
+        try{
+            scheduleService.addBlock(block);
+            return ResponseEntity.ok("Block added successfully");
+        }catch(IllegalArgumentException e){
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
     }
 
     @GetMapping

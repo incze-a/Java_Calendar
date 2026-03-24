@@ -1,6 +1,8 @@
+// components/DayColumn.tsx
 import React from "react";
 import { DaySchedule } from "../types/types";
 import TimeBlock from "./TimeBlock";
+import { timeToPixels } from "../utils/timeUtils";
 
 const DayColumn: React.FC<{ day: DaySchedule }> = ({ day }) => {
     return (
@@ -10,23 +12,22 @@ const DayColumn: React.FC<{ day: DaySchedule }> = ({ day }) => {
                 backgroundColor: "#f9f9f9",
                 border: "1px solid #ccc",
                 borderRadius: "8px",
-                padding: "10px",
-                minHeight: "250px",
+                position: "relative",   // important for absolute positioning of blocks
+                minHeight: `${(20-8) * 50}px`, // total day height
             }}
         >
-            <h3 style={{ textAlign: "center", marginBottom: "5px" }}>
+            <h3 style={{ textAlign: "center", margin: "5px 0" }}>
                 {new Date(day.date).toLocaleDateString("en-US", { weekday: "short" })}
             </h3>
-            <p style={{ textAlign: "center", color: "#777", fontSize: "12px", marginBottom: "10px" }}>
-                {day.date}
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-                {day.blocks.length > 0 ? (
-                    day.blocks.map((block) => <TimeBlock key={block.id} block={block} />)
-                ) : (
-                    <p style={{ textAlign: "center", color: "#aaa", fontSize: "12px" }}>No events</p>
-                )}
-            </div>
+
+            {day.blocks.map((block) => {
+                const top = timeToPixels(block.startTime);
+                const height = timeToPixels(block.endTime) - top;
+
+                return (
+                    <TimeBlock key={block.id} block={block} top={top} height={height} />
+                );
+            })}
         </div>
     );
 };

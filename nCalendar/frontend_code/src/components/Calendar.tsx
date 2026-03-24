@@ -2,17 +2,25 @@ import React, { useEffect, useState } from "react";
 import { getWeekSchedule } from "../services/api";
 import { DaySchedule } from "../types/types";
 import DayColumn from "./DayColumn";
+import AddEventForm from "./AddEventForm";
 
 const Calendar: React.FC = () => {
     const [week, setWeek] = useState<DaySchedule[]>([]);
 
-    useEffect(() => {
+    const refreshWeek = () =>{
         getWeekSchedule("2026-03-16").then(setWeek);
+    };
+
+    useEffect(() => {
+        refreshWeek();
     }, []);
 
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <h1 style={{ textAlign: "center", marginBottom: "20px" }}>Weekly Schedule</h1>
+
+            <AddEventForm onAdded={refreshWeek}/>
+
             <div style={{ display: "flex", gap: "10px" }}>
                 {week.map((day) => (
                     <DayColumn key={day.date} day={day} />

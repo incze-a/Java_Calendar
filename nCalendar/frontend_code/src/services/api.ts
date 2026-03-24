@@ -6,3 +6,18 @@ export async function getWeekSchedule(startDate: string) {
     );
     return response.json();
 }
+
+export async function addBlock(block: any) {
+    const response = await fetch("http://localhost:8080/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(block),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText);
+    }
+
+    return response.text();
+}

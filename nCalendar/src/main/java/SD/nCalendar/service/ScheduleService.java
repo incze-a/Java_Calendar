@@ -13,10 +13,20 @@ public class ScheduleService { //handle recurring blocks
     private final List<RecurringScheduleBlock> blocks = new ArrayList<>();
     private Long idCounter=1L;
 
-    public RecurringScheduleBlock addBlock(RecurringScheduleBlock block) {
+    public void addBlock(RecurringScheduleBlock block) {
+        //check overlap
+        for(RecurringScheduleBlock existing: blocks) {
+            if(existing.getDayOfWeek().equals(block.getDayOfWeek())) {
+                //same day
+                if(block.getStartTime().isBefore(existing.getEndTime()) &&
+                        block.getEndTime().isAfter(existing.getStartTime())) {
+                    throw new IllegalArgumentException("" +
+                            "New block overlaps with existing block");
+                }
+            }
+        }
         block.setId(idCounter++);
         blocks.add(block);
-        return block;
     }
 
     public List<RecurringScheduleBlock> getAllBlocks() {
