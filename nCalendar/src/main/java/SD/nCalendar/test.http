@@ -1,0 +1,16 @@
+POST http://localhost:8080/schedule
+Content-Type: application/json
+
+{
+  "title": "Lecture",
+  "dayOfWeek": "WEDNESDAY",
+  "startTime": "12:00",
+  "endTime": "14:00",
+  "color": "PURPLE"
+}
+
+###
+
+GET http://localhost:8080/calendar/week?startDate=2026-03-16
+
+
