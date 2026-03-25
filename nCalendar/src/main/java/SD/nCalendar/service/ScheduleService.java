@@ -25,6 +25,10 @@ public class ScheduleService { //handle recurring blocks
                 }
             }
         }
+        //check time
+        if(block.getStartTime().isAfter(block.getEndTime()) || block.getStartTime().equals(block.getEndTime())) {
+            throw new IllegalArgumentException("Invalid start and end times");
+        }
         block.setId(idCounter++);
         blocks.add(block);
     }
