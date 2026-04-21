@@ -1,22 +1,21 @@
-// components/TimeBlock.tsx
 import React from "react";
-import { TimeBlock as TimeBlockType } from "../types/types";
 
-const TimeBlock: React.FC<{ block: TimeBlockType; top: number; height: number }> = ({ block, top, height }) => {
+const TimeBlock: React.FC<any> = ({ block, top, height, onClick }) => {
     return (
         <div
+            onClick={onClick}
             style={{
                 position: "absolute",
-                top: `${top}px`,
-                height: `${height}px`,
-                left: "5px",
-                right: "5px",
-                backgroundColor: block.color || "#e03674",
-                color: "white",
-                borderRadius: "5px",
+                top: top,
+                height: height,
+                left: "1px",
+                right: "1px",
+                backgroundColor: block.color,
+                borderRadius: "6px",
                 padding: "5px",
+                color: "white",
                 fontSize: "12px",
-                fontWeight: "bold",
+                cursor: "pointer",
             }}
         >
             <div>{block.title}</div>

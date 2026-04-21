@@ -21,3 +21,19 @@ export async function addBlock(block: any) {
 
     return response.text();
 }
+
+export async function addEvent(event: any) {
+    return fetch(`${BASE_URL}/schedule`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(event),
+    });
+}
+
+export async function deleteEvent(id: number) {
+    return fetch(`${BASE_URL}/schedule/${id}`, {
+        method: "DELETE",
+    });
+}

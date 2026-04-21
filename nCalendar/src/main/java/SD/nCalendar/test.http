@@ -3,9 +3,9 @@ Content-Type: application/json
 
 {
   "title": "Lecture",
-  "dayOfWeek": "TUESDAY",
-  "startTime": "08:00",
-  "endTime": "20:00",
+  "dayOfWeek": "WEDNESDAY",
+  "startTime": "07:00",
+  "endTime": "22:00",
   "color": "#e03674"
 }
 

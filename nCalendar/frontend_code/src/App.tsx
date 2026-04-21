@@ -26,11 +26,13 @@
 // export default App;
 import React from "react";
 import Calendar from "./components/Calendar";
+import SchedulePage from "./pages/SchedulePage";
+import AuthPage from "./pages/AuthPage";
 
 function App() {
   return (
       <div>
-        <Calendar />
+        <SchedulePage />
       </div>
   );
 }
