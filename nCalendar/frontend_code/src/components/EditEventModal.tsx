@@ -1,58 +1,77 @@
-import React, {useState} from "react";
-import {addBlock, deleteEvent} from "../services/api";
+import React, { useState } from "react";
+import {
+    updateBlock,
+    updateEvent,
+    deleteBlock,
+    deleteEvent,
+} from "../services/api";
+import { snapTo15, getDayOfWeek } from "../utils/timeUtils";
 
 interface Props {
-    day: any,
-    onAdded: () => void,
-    onClose?: () => void,
-    block: any
+    day: any;
+    onAdded: () => void;
+    onClose?: () => void;
+    block: any;
 }
 
-const snapTo15=(time: string)=>{
-    if(!time) return time;
+const EditEventModal: React.FC<Props> = ({
+                                             day,
+                                             onClose,
+                                             onAdded,
+                                             block,
+                                         }) => {
+    const [title, setTitle] = useState(block.title || "");
+    const [startTime, setStartTime] = useState(block.startTime || "");
+    const [endTime, setEndTime] = useState(block.endTime || "");
+    const [recurring, setRecurring] = useState(block.type === "Recurring");
+    const [color, setColor] = useState(block.color || "#ff6b81");
 
-    const[h,m]=time.split(":").map(Number);
-    let total=h*60+m;
-    total = Math.round(total/15)*15
-
-    const min=8*60;
-    const max=22*60;
-    if(total>max) total=max;
-    else if(total<min) total=min;
-
-    const hh = Math.floor(total / 60);
-    const mm = total % 60;
-
-    return `${hh.toString().padStart(2, "0")}:${mm
-        .toString()
-        .padStart(2, "0")}`;
-}
-
-const EditEventModal: React.FC<Props> = ({day, onClose, onAdded}) => {
-    const [title, setTitle] = useState("");
-    const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("");
-    const [recurring, setRecurring] = useState(false);
-    const [color, setColor] = useState("");
-
-    const handleSubmit = async () => {
+    const handleEdit = async () => {
         try {
-            await addBlock({title, dayOfWeek: day, startTime, endTime, color});
+            if (recurring) {
+                await updateBlock(block.id, {
+                    title,
+                    dayOfWeek: getDayOfWeek(day.date),
+                    startTime,
+                    endTime,
+                    color,
+                });
+            } else {
+                await updateEvent(block.id, {
+                    title,
+                    date: day.date,
+                    startTime,
+                    endTime,
+                    color,
+                });
+            }
+
             onAdded();
+            onClose?.();
         } catch (err: any) {
             alert("Error: " + err.message);
         }
-        onAdded();
     };
 
     const handleRemove = async () => {
         try {
-            await deleteEvent(1);
+            const confirmed = window.confirm(
+                `Are you sure you want to remove "${block.title}"?`
+            );
+
+            if (!confirmed) return;
+
+            if (block.type === "Recurring") {
+                await deleteBlock(block.id);
+            } else {
+                await deleteEvent(block.id);
+            }
+
             onAdded();
+            onClose?.();
         } catch (err: any) {
             alert("Error: " + err.message);
         }
-        onAdded();
     };
 
     return (
@@ -91,33 +110,42 @@ const EditEventModal: React.FC<Props> = ({day, onClose, onAdded}) => {
                     </div>
                 </div>
 
-                <div style={styles.checkboxRow}>
-                    <input
-                        type="checkbox"
-                        checked={recurring}
-                        onChange={() => setRecurring(!recurring)}
-                    />
-                    <span>Recurring</span>
-                </div>
+                {/*<div style={styles.checkboxRow}>*/}
+                {/*    <input*/}
+                {/*        type="checkbox"*/}
+                {/*        checked={recurring}*/}
+                {/*        onChange={() => setRecurring(!recurring)}*/}
+                {/*    />*/}
+                {/*    <span>Recurring</span>*/}
+                {/*</div>*/}
 
                 <label style={styles.label}>Color</label>
-                <input type="color" value={color} onChange={e => setColor(e.target.value)}/>
+                <input
+                    type="color"
+                    value={color}
+                    onChange={(e) => setColor(e.target.value)}
+                />
 
                 <div style={styles.row}>
                     <div style={styles.column}>
-                    <button style={styles.button} onClick={handleSubmit}>
+                        <button style={styles.button} onClick={handleEdit}>
                             EDIT
-                    </button>
+                        </button>
                     </div>
+
                     <div style={styles.column}>
-                    <button style={styles.button} onClick={handleRemove}>
-                        REMOVE
-                    </button>
+                        <button
+                            style={{ ...styles.button, backgroundColor: "#c94c4c" }}
+                            onClick={handleRemove}
+                        >
+                            REMOVE
+                        </button>
+                    </div>
                 </div>
-                </div>
+
                 <span style={styles.cancel} onClick={onClose}>
-                    Cancel
-                </span>
+          Cancel
+        </span>
             </div>
         </div>
     );

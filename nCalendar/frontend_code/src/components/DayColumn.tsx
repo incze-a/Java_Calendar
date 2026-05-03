@@ -1,30 +1,40 @@
 import React from "react";
 import TimeBlock from "./TimeBlock";
-import {timeToPixels} from "../utils/timeUtils";
+import {timeToPixels, pixelsToTime, addOneHour, isToday} from "../utils/timeUtils";
+import {DAY_START, DAY_END, PIXELS_PER_HOUR} from "../constants";
 
-// const START_HOUR=7;
-// const END_HOUR=22;
-// const HOUR_HEIGHT=60;
-// const totalHeight=(END_HOUR-START_HOUR) * HOUR_HEIGHT;
+const totalHeight=(DAY_END-DAY_START) * PIXELS_PER_HOUR + 35; //35 to account for the header
 
 const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
     const hours = Array.from({length: 16}, (_,i)=>i+7); // 7 - 22
+    const todayColumn = isToday(day.date);
 
     return (
-        <div style={styles.column} onClick={onEmptyClick}>
+        <div style={styles.column}>
             <div style={styles.header}>
                 {new Date(day.date).toLocaleDateString("en-US", {
                     weekday: "short",
-                })}
-            </div>
+})}
+</div>
 
-            <div style={styles.body}>
+            <div style={{...styles.body,
+                backgroundColor: todayColumn ? "#e7e9f2" : "#f7f7f7",
+
+            }} onClick={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const y = e.clientY - rect.top;
+
+                const startTime = pixelsToTime(y);
+                const endTime = addOneHour(startTime);
+
+                onEmptyClick(day, startTime, endTime);
+            }}>
                 {hours.map((hour) => (
                     <div
                         key={hour}
                         style={{
                             position: "absolute",
-                            top: (hour - 7) * 60, // 60px per hour
+                            top: (hour - DAY_START) * PIXELS_PER_HOUR, // 60px per hour
                             left: 0,
                             right: 0,
                             borderTop: "1px solid #ddd",
@@ -32,7 +42,7 @@ const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
                             color: "#999",
                         }}
                     >
-            <span style={{ position: "absolute", left: 2, top: -6 }}>
+            <span style={{position: "absolute", left: 2}}>
                 {hour}:00
             </span>
                     </div>
@@ -41,7 +51,7 @@ const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
                 {day.blocks.map((block: any) => {
                     const top = timeToPixels(block.startTime);
                     const height =
-                        timeToPixels(block.endTime) - timeToPixels(block.startTime);
+                        timeToPixels(block.endTime) - timeToPixels(block.startTime) - 10;
 
                     return (
                         <TimeBlock
@@ -61,12 +71,12 @@ const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
     );
 };
 
-const styles: {[key: string]: React.CSSProperties} = {
+const styles: { [key: string]: React.CSSProperties} = {
     column: {
         flex: 1,
         display:"flex",
         flexDirection:"column",
-        height:"100%",
+        height:totalHeight,
         cursor: "pointer",
     },
     header: {

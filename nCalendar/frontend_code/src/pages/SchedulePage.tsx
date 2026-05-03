@@ -6,23 +6,35 @@ import AddEventModal from "../components/AddEventModal";
 import EditEventModal from "../components/EditEventModal";
 import { getWeekSchedule } from "../services/api";
 import Display from "../components/Display";
+import { getCurrentWeekStartString } from "../utils/timeUtils";
 
 const SchedulePage: React.FC = () => {
     const [week, setWeek] = useState<any[]>([]);
     const [showAdd, setShowAdd] = useState(false);
     const [selectedDay, setSelectedDay] = useState<string | null>(null);
     const [selectedBlock, setSelectedBlock] = useState<any>(null);
+    //states for default times
+    const [defaultStartTime, setDefaultStartTime]=useState("");
+    const [defaultEndTime, setDefaultEndTime]=useState("");
 
-    const refreshWeek=()=>{
-        getWeekSchedule("2026-03-16").then(setWeek);
+    const loadWeek = async () => {
+        const currentWeekStart = getCurrentWeekStartString();
+        const data = await getWeekSchedule(currentWeekStart);
+
+        if (Array.isArray(data)) {
+            setWeek(data);
+        } else {
+            console.error("Expected week array, got:", data);
+            setWeek([]);
+        }
     };
     const refreshAndClose=()=>{
-        refreshWeek();
+        loadWeek();
         setShowAdd(false);
     };
 
     useEffect(() => {
-        refreshWeek();
+        loadWeek();
     }, []);
 
     return (
@@ -30,14 +42,16 @@ const SchedulePage: React.FC = () => {
             <Navbar />
 
             <div style={styles.container}>
-                {/* LEFT: SCHEDULE */}
+                {/* WHAT'S ON THE LEFT */}
                 <div style={styles.schedule}>
                     {week.map((day: any) => (
                         <DayColumn
                             key={day.date}
                             day={day}
-                            onEmptyClick={() => {
-                                setSelectedDay(day.date);
+                            onEmptyClick={(clickedDay: any, startTime: string, endTime: string) => {
+                                setSelectedDay(clickedDay);
+                                setDefaultStartTime(startTime);
+                                setDefaultEndTime(endTime);
                                 setShowAdd(true);
                             }}
                             onBlockClick={(block: any) => setSelectedBlock(block)}
@@ -45,7 +59,7 @@ const SchedulePage: React.FC = () => {
                     ))}
                 </div>
 
-                {/* RIGHT: TASKS */}
+                {/* TASKS AND DISPLAY ON THE RIGHT */}
                 <div style={styles.rightColumn}>
                     <div style={styles.displayBox}>
                         <Display/>
@@ -57,9 +71,11 @@ const SchedulePage: React.FC = () => {
             </div>
 
             {/* MODALS */}
-            {showAdd && (
+            {showAdd && selectedDay && (
                 <AddEventModal
                     day={selectedDay}
+                    defaultStartTime={defaultStartTime}
+                    defaultEndTime={defaultEndTime}
                     onAdded={() => refreshAndClose()}
                     onClose={()=>setShowAdd(false)}
                 />

@@ -1,96 +1,283 @@
-import React, {useState} from "react";
+import React, { useEffect, useState } from "react";
+import {
+    addTask,
+    deleteTask,
+    getTasksForWeek,
+    updateTask,
+} from "../services/api";
+import { getTodayString, getCurrentWeekStartString } from "../utils/timeUtils";
 
 interface Task {
+    id: number;
     text: string;
     completed: boolean;
+    date?: string;
 }
 
 const TaskPanel: React.FC = () => {
-    const [tasks, setTasks] = useState<Task[]>([
-        { text: "Laundry", completed: false },
-        { text: "Call restaurant to make dinner reservation", completed: true },
-        { text: "Schedule interview", completed: false },
-    ]);
-
-    const [newTaskIndex, setNewTaskIndex] = useState<number | null>(null);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [isAdding, setIsAdding] = useState(false);
     const [newText, setNewText] = useState("");
 
-    const toggleTask = (index: number) => {
-        setTasks((prev) =>
-            prev.map((task, i) =>
-                i === index ? { ...task, completed: !task.completed } : task
-            )
-        );
+    const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+    const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+    const [editText, setEditText] = useState("");
+
+    const weekDate = getCurrentWeekStartString();
+    const todayDate = getTodayString();
+
+    const loadTasks = async () => {
+        try {
+            const data = await getTasksForWeek(weekDate);
+
+            if (Array.isArray(data)) {
+                setTasks(data);
+            } else {
+                console.error("Expected tasks array, got:", data);
+                setTasks([]);
+            }
+        } catch (err: any) {
+            alert("Error loading tasks: " + err.message);
+        }
     };
 
-    // Add new task when clicking empty space
+    useEffect(() => {
+        loadTasks();
+    }, []);
+
     const handleEmptyClick = () => {
-        if (newTaskIndex !== null) return; // prevent multiple inputs
-
-        setTasks((prev) => [...prev, { text: "", completed: false }]);
-        setNewTaskIndex(tasks.length);
+        setSelectedTaskId(null);
+        setEditingTaskId(null);
         setNewText("");
+        setIsAdding(true);
     };
 
-    // Save new task
-    const saveNewTask = () => {
-        if (newTaskIndex === null) return;
+    const saveNewTask = async () => {
+        const trimmed = newText.trim();
 
-        setTasks((prev) =>
-            prev.map((task, i) =>
-                i === newTaskIndex ? { ...task, text: newText } : task
-            )
-        );
+        if (!trimmed) {
+            setIsAdding(false);
+            setNewText("");
+            return;
+        }
 
-        setNewTaskIndex(null);
-        setNewText("");
+        try {
+            await addTask({
+                text: trimmed,
+                completed: false,
+                date: todayDate,
+            });
+
+            setNewText("");
+            setIsAdding(false);
+            await loadTasks();
+        } catch (err: any) {
+            alert("Error creating task: " + err.message);
+        }
+    };
+
+    const handleComplete = async (task: Task) => {
+        try {
+            await updateTask(task.id, {
+                text: task.text,
+                completed: true,
+                date: task.date,
+
+                ADD A COMPLETED DATE THINGY
+            });
+
+            setSelectedTaskId(null);
+            await loadTasks();
+        } catch (err: any) {
+            alert("Error completing task: " + err.message);
+        }
+    };
+
+    const handleReopen = async (task: Task) => {
+        try {
+            await updateTask(task.id, {
+                text: task.text,
+                completed: false,
+                date: task.date,
+
+                COMPLETED DATE NEEDS TO BE REMOVED HERE
+            });
+
+            setSelectedTaskId(null);
+            await loadTasks();
+        } catch (err: any) {
+            alert("Error reopening task: " + err.message);
+        }
+    };
+
+    const startEditing = (task: Task) => {
+        setEditingTaskId(task.id);
+        setEditText(task.text);
+        setSelectedTaskId(null);
+    };
+
+    const saveEdit = async (task: Task) => {
+        const trimmed = editText.trim();
+
+        if (!trimmed) {
+            setEditingTaskId(null);
+            setEditText("");
+            return;
+        }
+
+        try {
+            await updateTask(task.id, {
+                text: trimmed,
+                completed: task.completed,
+                date: task.date,
+            });
+
+            setEditingTaskId(null);
+            setEditText("");
+            await loadTasks();
+        } catch (err: any) {
+            alert("Error editing task: " + err.message);
+        }
+    };
+
+    const handleRemove = async (task: Task) => {
+        try {
+            const confirmed = window.confirm(`Remove task "${task.text}"?`);
+
+            if (!confirmed) return;
+
+            await deleteTask(task.id);
+
+            setSelectedTaskId(null);
+            await loadTasks();
+        } catch (err: any) {
+            alert("Error removing task: " + err.message);
+        }
     };
 
     return (
         <div style={styles.panel} onClick={handleEmptyClick}>
             <div style={styles.header}>This week’s tasks are...</div>
 
-            <div style={styles.list} onClick={(e) => e.stopPropagation()}>
-                {tasks.map((task, index) => (
-                    <div
-                        key={index}
-                        style={styles.taskRow}
-                        onClick={() => toggleTask(index)}
-                    >
+            <div style={styles.list}>
+                {tasks.map((task) => (
+                    <div key={task.id} style={styles.taskWrapper}>
                         <div
-                            style={{
-                                ...styles.square,
-                                backgroundColor: task.completed ? "#bbb" : "#333",
+                            style={styles.taskRow}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTaskId(
+                                    selectedTaskId === task.id ? null : task.id
+                                );
                             }}
-                        />
-
-                        {newTaskIndex === index ? (
-                            <input
-                                autoFocus
-                                style={styles.input}
-                                value={newText}
-                                onChange={(e) => setNewText(e.target.value)}
-                                onBlur={saveNewTask}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") saveNewTask();
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                            />
-                        ) : (
-                            <span
+                        >
+                            <div
                                 style={{
-                                    ...styles.text,
-                                    color: task.completed ? "#aaa" : "#000",
-                                    textDecoration: task.completed
-                                        ? "line-through"
-                                        : "none",
+                                    ...styles.square,
+                                    backgroundColor: task.completed ? "#bbb" : "#333",
                                 }}
-                            >
-                                {task.text || "New task"}
-                            </span>
+                            />
+
+                            {editingTaskId === task.id ? (
+                                <input
+                                    autoFocus
+                                    style={styles.input}
+                                    value={editText}
+                                    onChange={(e) => setEditText(e.target.value)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onBlur={() => saveEdit(task)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") saveEdit(task);
+                                        if (e.key === "Escape") {
+                                            setEditingTaskId(null);
+                                            setEditText("");
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                <span
+                                    style={{
+                                        ...styles.text,
+                                        color: task.completed ? "#999" : "#000",
+                                        textDecoration: task.completed ? "line-through" : "none",
+                                    }}
+                                >
+                  {task.text}
+                </span>
+                            )}
+                        </div>
+
+                        {selectedTaskId === task.id && editingTaskId !== task.id && (
+                            <div style={styles.menu} onClick={(e) => e.stopPropagation()}>
+                                {task.completed ? (
+                                    <button
+                                        style={styles.menuButton}
+                                        onClick={() => handleReopen(task)}
+                                    >
+                                        Reopen
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button
+                                            style={styles.menuButton}
+                                            onClick={() => handleComplete(task)}
+                                        >
+                                            Complete
+                                        </button>
+
+                                        <span style={styles.separator}>|</span>
+
+                                        <button
+                                            style={styles.menuButton}
+                                            onClick={() => startEditing(task)}
+                                        >
+                                            Edit
+                                        </button>
+
+                                        <span style={styles.separator}>|</span>
+
+                                        <button
+                                            style={styles.menuButton}
+                                            onClick={() => handleRemove(task)}
+                                        >
+                                            Remove
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         )}
                     </div>
                 ))}
+
+                {isAdding && (
+                    <div
+                        style={styles.taskRow}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={styles.square} />
+
+                        <input
+                            autoFocus
+                            style={styles.input}
+                            value={newText}
+                            placeholder="New task..."
+                            onChange={(e) => setNewText(e.target.value)}
+                            onBlur={() => {
+                                if (!newText.trim()) {
+                                    setIsAdding(false);
+                                    setNewText("");
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") saveNewTask();
+                                if (e.key === "Escape") {
+                                    setIsAdding(false);
+                                    setNewText("");
+                                }
+                            }}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -103,6 +290,10 @@ const styles: { [key: string]: React.CSSProperties } = {
         height: "100%",
         display: "flex",
         flexDirection: "column",
+        backgroundColor: "#fff",
+        cursor: "text",
+        overflow: "hidden",
+        minWidth: 0,
     },
     header: {
         background: "linear-gradient(to right, #fdf5ac, #fdaaf6)",
@@ -115,21 +306,68 @@ const styles: { [key: string]: React.CSSProperties } = {
         display: "flex",
         flexDirection: "column",
         gap: "10px",
-        cursor:"pointer",
+        flex: 1,
+        overflowY: "auto",
+        overflowX: "hidden",
+        minWidth: 0,
+    },
+    taskWrapper: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "4px",
+        maxWidth: "100%",
+        minWidth: 0,
     },
     taskRow: {
         display: "flex",
         alignItems: "flex-start",
         gap: "8px",
+        cursor: "pointer",
+        maxWidth: "100%",
+        minWidth: 0,
     },
     square: {
         width: "8px",
         height: "8px",
         marginTop: "6px",
+        backgroundColor: "#333",
+        flexShrink: 0,
     },
     text: {
         fontSize: "14px",
         lineHeight: "1.2",
+        overflowWrap: "anywhere",
+        wordBreak: "break-word",
+        whiteSpace: "normal",
+        flex: 1,
+        minWidth: 0,
+    },
+    input: {
+        flex: 1,
+        border: "none",
+        borderBottom: "1px solid #aaa",
+        outline: "none",
+        fontSize: "14px",
+        backgroundColor: "transparent",
+    },
+    menu: {
+        marginLeft: "16px",
+        fontSize: "12px",
+        color: "#666",
+        display: "flex",
+        alignItems: "center",
+        gap: "4px",
+    },
+    menuButton: {
+        border: "none",
+        background: "transparent",
+        color: "#666",
+        cursor: "pointer",
+        padding: 0,
+        fontSize: "12px",
+    },
+    separator: {
+        color: "#aaa",
     },
 };
 

@@ -1,3 +1,3 @@
-export const DAY_START_HOUR = 8
-export const DAY_END_HOUR = 20;
-export const HOUR_HEIGHT=50; //50 pixels per hour
+export const DAY_START = 7;   // 07:00
+export const PIXELS_PER_HOUR = 60;
+export const DAY_END = 22;

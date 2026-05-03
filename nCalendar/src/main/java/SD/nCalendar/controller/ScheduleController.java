@@ -1,5 +1,6 @@
 package SD.nCalendar.controller;
 
+import SD.nCalendar.model.OneTimeEvent;
 import SD.nCalendar.model.RecurringScheduleBlock;
 import SD.nCalendar.service.ScheduleService;
 import org.springframework.http.ResponseEntity;
@@ -29,5 +30,19 @@ public class ScheduleController {
     @GetMapping
     public List<RecurringScheduleBlock> getBlocks() {
         return scheduleService.getAllBlocks();
+    }
+
+    //ADD UPDATE AND REMOVE
+    @DeleteMapping("/{id}")
+    public void deleteBlock(@PathVariable Long id) {
+        scheduleService.deleteBlock(id);
+    }
+
+    @PutMapping("/{id}")
+    public RecurringScheduleBlock updateBlock(
+            @PathVariable Long id,
+            @RequestBody RecurringScheduleBlock updatedBlock
+    ) {
+        return scheduleService.updateBlock(id, updatedBlock);
     }
 }

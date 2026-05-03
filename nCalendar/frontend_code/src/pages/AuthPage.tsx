@@ -18,17 +18,7 @@ const AuthPage: React.FC = () => {
 };
 
 const styles: {[key: string]: React.CSSProperties} = {
-    container: {
-        textAlign: "center",
-        marginTop: "100px",
-    },
-    form: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        width: "250px",
-        margin: "auto",
-    },
+
 };
 
 export default AuthPage;

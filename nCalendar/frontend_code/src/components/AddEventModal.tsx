@@ -1,47 +1,56 @@
 import React, {useState} from "react";
-import {addBlock} from "../services/api";
+import {addBlock, addEvent} from "../services/api";
+import {getDayOfWeek, snapTo15} from "../utils/timeUtils";
 
 interface Props {
     day: any,
+    defaultStartTime?: string,
+    defaultEndTime?: string,
     onAdded: () => void,
     onClose?: () => void,
 }
 
-const snapTo15=(time: string)=>{
-    if(!time) return time;
 
-    const[h,m]=time.split(":").map(Number);
-    let total=h*60+m;
-    total = Math.round(total/15)*15
 
-    const min=8*60;
-    const max=22*60;
-    if(total>max) total=max;
-    else if(total<min) total=min;
-
-    const hh = Math.floor(total / 60);
-    const mm = total % 60;
-
-    return `${hh.toString().padStart(2, "0")}:${mm
-        .toString()
-        .padStart(2, "0")}`;
-}
-
-const AddEventModal: React.FC<Props> = ({day, onClose, onAdded}) => {
-    const [title, setTitle] = useState("");
-    const [startTime, setStartTime] = useState("");
-    const [endTime, setEndTime] = useState("");
+const AddEventModal: React.FC<Props> = ({day,
+                                            defaultEndTime="",
+                                            defaultStartTime="",
+                                            onClose, onAdded}) => {
+    const [title, setTitle] = useState("New Block");
+    const [startTime, setStartTime] = useState(defaultStartTime);
+    const [endTime, setEndTime] = useState(defaultEndTime);
     const [recurring, setRecurring] = useState(false);
     const [color, setColor] = useState("");
 
     const handleSubmit = async () => {
+        console.log("STRUCTURE RECEIVED:", day);
+        console.log("DATE:", day.date);
+        console.log("DAY OF WEEK:", getDayOfWeek(day.date));
+
         try {
-            await addBlock({title, dayOfWeek: day, startTime, endTime, color});
+            if (recurring) {
+                await addBlock({
+                    title,
+                    dayOfWeek: getDayOfWeek(day.date),
+                    startTime,
+                    endTime,
+                    color: color || "#fd65c2",
+                });
+            } else {
+                await addEvent({
+                    title,
+                    date: day.date,
+                    startTime,
+                    endTime,
+                    color: color || "#bffd71",
+                });
+            }
+
             onAdded();
+            onClose?.();
         } catch (err: any) {
             alert("Error: " + err.message);
         }
-        onAdded();
     };
 
     return (

@@ -26,4 +26,17 @@ public class EventController {
     public List<OneTimeEvent> getEvents(@PathVariable String date) {
         return eventService.getEventsForDate(LocalDate.parse(date));
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteEvent(@PathVariable Long id) {
+        eventService.deleteEvent(id);
+    }
+
+    @PutMapping("/{id}")
+    public OneTimeEvent updateEvent(
+            @PathVariable Long id,
+            @RequestBody OneTimeEvent updatedEvent
+    ) {
+        return eventService.updateEvent(id, updatedEvent);
+    }
 }

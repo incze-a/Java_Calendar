@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { addBlock } from "../services/api";
+import { addBlock, addEvent } from "../services/api";
+import {getDayOfWeek} from "../utils/timeUtils";
 
 interface Props {
     onAdded: () => void; // callback to refresh calendar
