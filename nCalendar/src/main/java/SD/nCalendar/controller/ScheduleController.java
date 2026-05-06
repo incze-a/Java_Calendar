@@ -18,21 +18,13 @@ public class ScheduleController {
     }
 
     @PostMapping
-    public ResponseEntity<String> addBlock(@RequestBody RecurringScheduleBlock block) {
-        try{
-            scheduleService.addBlock(block);
-            return ResponseEntity.ok("Block added successfully");
-        }catch(IllegalArgumentException e){
-            return ResponseEntity.status(400).body(e.getMessage());
-        }
+    public RecurringScheduleBlock addBlock(
+            @RequestParam Long userId,
+            @RequestBody RecurringScheduleBlock block
+    ) {
+        return scheduleService.addBlock(userId, block);
     }
 
-    @GetMapping
-    public List<RecurringScheduleBlock> getBlocks() {
-        return scheduleService.getAllBlocks();
-    }
-
-    //ADD UPDATE AND REMOVE
     @DeleteMapping("/{id}")
     public void deleteBlock(@PathVariable Long id) {
         scheduleService.deleteBlock(id);

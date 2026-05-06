@@ -13,4 +13,25 @@ Content-Type: application/json
 
 GET http://localhost:8080/calendar/week?startDate=2026-03-16
 
+###
 
+POST http://localhost:8080/users/signup
+Content-Type: application/json
+
+{
+  "username": "niki",
+  "email": "niki@example.com",
+  "password": "secret123",
+  "userDayStart": "08:00",
+  "userDayEnd": "22:00"
+}
+
+###
+
+POST http://localhost:8080/users/login
+Content-Type: application/json
+
+{
+  "email": "niki@example.com",
+  "password": "secret123"
+}

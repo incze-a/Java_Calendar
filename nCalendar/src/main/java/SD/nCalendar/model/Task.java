@@ -1,28 +1,39 @@
 package SD.nCalendar.model;
 
+import jakarta.persistence.*;
+
 import java.time.LocalDate;
 
+@Entity
 public class Task {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String text;
     private LocalDate date; //date added
-    private LocalDate dateCompleted;
     private boolean completed;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     public Task(Long id, String text, LocalDate date, boolean completed, LocalDate dateCompleted) {
         this.id = id;
         this.text = text;
         this.date = date;
         this.completed = completed;
-        this.dateCompleted = dateCompleted;
     }
 
-    public LocalDate getDateCompleted() {
-        return dateCompleted;
+    public Task() {
+
     }
 
-    public void setDateCompleted(LocalDate dateCompleted) {
-        this.dateCompleted = dateCompleted;
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Long getId() {

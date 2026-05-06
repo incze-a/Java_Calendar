@@ -21,7 +21,10 @@ public class CalendarController {
     }
 
     @GetMapping("/week")
-    public List<DaySchedule> getWeek(@RequestParam String startDate){
-        return calendarService.getWeekSchedule(LocalDate.parse(startDate));
+    public List<DaySchedule> getWeek(
+            @RequestParam String startDate,
+            @RequestParam Long userId
+    ) {
+        return calendarService.getWeekSchedule(userId, LocalDate.parse(startDate));
     }
 }

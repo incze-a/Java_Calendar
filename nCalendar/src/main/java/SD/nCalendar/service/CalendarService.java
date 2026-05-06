@@ -22,7 +22,7 @@ public class CalendarService { //build the actual calendar
         this.eventService = eventService;
     }
 
-    public List<DaySchedule> getWeekSchedule(LocalDate startDate){
+    public List<DaySchedule> getWeekSchedule(Long userId, LocalDate startDate){
         List<DaySchedule> weekSchedule = new ArrayList<>();
         for(int i=0; i<7; i++) {
             LocalDate currentDate = startDate.plusDays(i);
@@ -30,11 +30,11 @@ public class CalendarService { //build the actual calendar
             List<TimeBlockDTO> blockDTOs = new ArrayList<>();
 
 // Recurring
-            scheduleService.getBlocksForDay(currentDate.getDayOfWeek())
+            scheduleService.getBlocksForDay(userId,currentDate.getDayOfWeek())
                     .forEach(block -> blockDTOs.add(TimeBlockMapper.toDTO(block)));
 
 // Events
-            eventService.getEventsForDate(currentDate)
+            eventService.getEventsForDate(userId,currentDate)
                     .forEach(event -> blockDTOs.add(TimeBlockMapper.toDTO(event)));
 
 // Sort

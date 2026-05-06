@@ -1,46 +1,57 @@
 package SD.nCalendar.service;
 
-import SD.nCalendar.model.OneTimeEvent;
 import SD.nCalendar.model.Task;
+import SD.nCalendar.model.User;
+import SD.nCalendar.repository.TaskRepository;
+import SD.nCalendar.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
-    private final List<Task> tasks = new ArrayList<>();
-    private Long idCounter=1L;
 
-    public Task addTask(Task task){
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository) {
+        this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
+    }
+
+    public Task addTask(Long userId, Task task) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + userId));
+
         if (task.getText() == null || task.getText().trim().isEmpty()) {
             throw new IllegalArgumentException("Empty task is not accepted");
         }
 
-        task.setId(++idCounter);
-        tasks.add(task);
-        return task;
+        if (task.getDate() == null) {
+            throw new IllegalArgumentException("Task date is required");
+        }
+
+        task.setUser(user);
+
+        return taskRepository.save(task);
     }
 
     public List<Task> getTasksForDate(LocalDate date) {
-        return tasks.stream()
-                .filter(e -> e.getDate() != null && e.getDate().equals(date))
-                .collect(Collectors.toList());
+        return taskRepository.findByDate(date);
     }
 
-    public List<Task> getTasksForWeek(LocalDate startDate) {
+    public List<Task> getTasksForWeek(Long userId, LocalDate startDate) {
         LocalDate endDate = startDate.plusDays(6);
 
-        return tasks.stream()
+        return taskRepository.findByUserId(userId)
+                .stream()
                 .filter(task -> {
-                    // unfinished tasks always remain visible
                     if (!task.isCompleted()) {
                         return true;
                     }
 
-                    // completed tasks only appear during their original week
                     if (task.getDate() == null) {
                         return false;
                     }
@@ -51,22 +62,25 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteTask(Long id) {
-        boolean removed = tasks.removeIf(task -> task.getId().equals(id));
+    public Task updateTask(Long id, Task updatedTask) {
+        Task existing = taskRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Task not found with id: " + id));
 
-        if (!removed) {
-            throw new IllegalArgumentException("Task not found with id: " + id);
+        if (updatedTask.getText() == null || updatedTask.getText().trim().isEmpty()) {
+            throw new IllegalArgumentException("Empty task is not accepted");
         }
+
+        existing.setText(updatedTask.getText());
+        existing.setCompleted(updatedTask.isCompleted());
+
+        return taskRepository.save(existing);
     }
 
-    public Task updateTask(Long id, Task updatedTask) {
-        for (Task existing : tasks) {
-            if (existing.getId().equals(id)) {
-                existing.setText(updatedTask.getText());
-                existing.setCompleted(updatedTask.isCompleted());
-                return existing;
-            }
+    public void deleteTask(Long id) {
+        if (!taskRepository.existsById(id)) {
+            throw new IllegalArgumentException("Task not found with id: " + id);
         }
-        throw new IllegalArgumentException("Task not found with id: " + id);
+
+        taskRepository.deleteById(id);
     }
 }

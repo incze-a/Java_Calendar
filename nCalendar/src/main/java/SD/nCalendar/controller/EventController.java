@@ -18,13 +18,19 @@ public class EventController {
     }
 
     @PostMapping
-    public OneTimeEvent addEvent(@RequestBody OneTimeEvent oneTimeEvent) {
-        return eventService.addEvent(oneTimeEvent);
+    public OneTimeEvent addEvent(
+            @RequestParam Long userId,
+            @RequestBody OneTimeEvent event
+    ) {
+        return eventService.addEvent(userId, event);
     }
 
     @GetMapping("/{date}")
-    public List<OneTimeEvent> getEvents(@PathVariable String date) {
-        return eventService.getEventsForDate(LocalDate.parse(date));
+    public List<OneTimeEvent> getEvents(
+            @PathVariable String date,
+            @RequestParam Long userId
+    ) {
+        return eventService.getEventsForDate(userId,LocalDate.parse(date));
     }
 
     @DeleteMapping("/{id}")

@@ -18,13 +18,19 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task addTask(@RequestBody Task task) {
-        return taskService.addTask(task);
+    public Task addTask(
+            @RequestParam Long userId,
+            @RequestBody Task task
+    ) {
+        return taskService.addTask(userId, task);
     }
 
     @GetMapping("/week")
-    public List<Task> getTasksForWeek(@RequestParam String startDate) {
-        return taskService.getTasksForWeek(LocalDate.parse(startDate));
+    public List<Task> getTasksForWeek(
+            @RequestParam String startDate,
+            @RequestParam Long userId
+    ) {
+        return taskService.getTasksForWeek(userId, LocalDate.parse(startDate));
     }
 
     @GetMapping("/{date}")
@@ -44,5 +50,6 @@ public class TaskController {
     ) {
         return taskService.updateTask(id, updatedTask);
     }
+
 
 }
