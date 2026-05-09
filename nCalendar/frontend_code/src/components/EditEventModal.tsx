@@ -12,6 +12,8 @@ interface Props {
     onAdded: () => void;
     onClose?: () => void;
     block: any;
+    userDayStart: number;
+    userDayEnd: number;
 }
 
 const EditEventModal: React.FC<Props> = ({
@@ -19,6 +21,8 @@ const EditEventModal: React.FC<Props> = ({
                                              onClose,
                                              onAdded,
                                              block,
+    userDayStart,
+    userDayEnd,
                                          }) => {
     const [title, setTitle] = useState(block.title || "");
     const [startTime, setStartTime] = useState(block.startTime || "");
@@ -95,7 +99,7 @@ const EditEventModal: React.FC<Props> = ({
                             type="time"
                             style={styles.smallInput}
                             value={startTime}
-                            onChange={(e) => setStartTime(snapTo15(e.target.value))}
+                            onChange={(e) => setStartTime(snapTo15(e.target.value, userDayStart, userDayEnd))}
                         />
                     </div>
 
@@ -105,7 +109,7 @@ const EditEventModal: React.FC<Props> = ({
                             type="time"
                             style={styles.smallInput}
                             value={endTime}
-                            onChange={(e) => setEndTime(snapTo15(e.target.value))}
+                            onChange={(e) => setEndTime(snapTo15(e.target.value, userDayStart, userDayEnd))}
                         />
                     </div>
                 </div>

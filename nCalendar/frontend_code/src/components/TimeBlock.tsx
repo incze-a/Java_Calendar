@@ -13,9 +13,10 @@ const TimeBlock: React.FC<any> = ({ block, top, height, onClick }) => {
                 backgroundColor: block.color,
                 borderRadius: "6px",
                 padding: "5px",
-                color: "white",
+                color: "#2e406e",
                 fontSize: "12px",
                 cursor: "pointer",
+                overflow:"auto",
             }}
         >
             <div>{block.title}</div>

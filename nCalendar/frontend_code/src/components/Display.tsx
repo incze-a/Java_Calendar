@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 
-const Display: React.FC = () => {
+interface Props {
+    username: string;
+}
+
+const Display: React.FC<Props> = ({username}) => {
     const [now, setNow] = useState(new Date());
 
     useEffect(() => {
@@ -26,7 +30,7 @@ const Display: React.FC = () => {
     return (
 
         <div style={styles.container}>
-            <div style={styles.logo}>Username's schedule</div>
+            <div style={styles.logo}>{username}'s schedule</div>
 <div style={styles.smaller_container}>
             <div style={styles.date}>{currentDate}</div>
             <div style={styles.time}>{currentTime}</div>

@@ -132,4 +132,12 @@ public class UserService {
                 user.getUserDayEnd()
         );
     }
+
+    public boolean emailExists(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+
+        return userRepository.existsByEmail(email.trim().toLowerCase());
+    }
 }

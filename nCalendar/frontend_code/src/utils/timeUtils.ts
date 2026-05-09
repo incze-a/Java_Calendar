@@ -1,18 +1,18 @@
-import {DAY_END, DAY_START, PIXELS_PER_HOUR} from "../constants";
+import {PIXELS_PER_HOUR} from "../constants";
 
 //pixels to time for auto filling time
-export function pixelsToTime(y: number):string {
+export function pixelsToTime(y: number, dayStart: number):string {
     const minutesFromStart = Math.round((y/PIXELS_PER_HOUR) * 60);
 
-    let totalMinutes=DAY_START * 60 + minutesFromStart
+    let totalMinutes=dayStart * 60 + minutesFromStart
     const hour=Math.floor(totalMinutes /60);
 
     return `${hour.toString().padStart(2, "0")}:00`;
 }
-export function addOneHour(time: string):string{
+export function addOneHour(time: string, dayEnd: number):string{
     const [hour,minute]=time.split(":").map(Number);
     let totalMinutes=hour*60 + minute +60;
-    const max = DAY_END *60;
+    const max = dayEnd *60;
     if (totalMinutes>max) totalMinutes=max;
 
     const newHour=Math.floor(totalMinutes/60);
@@ -20,9 +20,9 @@ export function addOneHour(time: string):string{
 }
 
 //time to pixels for block size
-export function timeToPixels(time: string): number {
+export function timeToPixels(time: string, dayStart: number): number {
     const [hour, minute] = time.split(":").map(Number);
-    return ((hour - DAY_START) * PIXELS_PER_HOUR + minute);
+    return ((hour - dayStart) * PIXELS_PER_HOUR + minute);
 }
 
 //date to day helper
@@ -32,16 +32,16 @@ export function getDayOfWeek(dateString: string):string {
         .toUpperCase();
 }
 
-//normalize time aka snap to 15
-export function snapTo15(time: string){
+//normalize time aka snap to 30
+export function snapTo15(time: string, dayStart: number, dayEnd: number){
     if(!time) return time;
 
     const[h,m]=time.split(":").map(Number);
     let total=h*60+m;
     total = Math.round(total/15)*15
 
-    const min=7*60;
-    const max=22*60;
+    const min=dayStart*60;
+    const max=dayEnd*60;
     if(total>max) total=max;
     else if(total<min) total=min;
 
@@ -93,4 +93,26 @@ export function isToday(dateString: string): boolean {
 
     return dateString === todayString;
 }
+
+//filter blocks to visible hours
+export function timeToMinutes(time: string): number {
+    const [hour, minute] = time.split(":").map(Number);
+    return hour * 60 + minute;
+}
+
+export function isBlockInsideVisibleHours(
+    startTime: string,
+    endTime: string,
+    dayStart: number,
+    dayEnd: number
+): boolean {
+    const blockStart = timeToMinutes(startTime);
+    const blockEnd = timeToMinutes(endTime);
+
+    const visibleStart = dayStart * 60;
+    const visibleEnd = dayEnd * 60;
+
+    return blockStart >= visibleStart && blockEnd <= visibleEnd;
+}
+
 

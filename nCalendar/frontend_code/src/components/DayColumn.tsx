@@ -1,16 +1,35 @@
 import React from "react";
 import TimeBlock from "./TimeBlock";
-import {timeToPixels, pixelsToTime, addOneHour, isToday} from "../utils/timeUtils";
-import {DAY_START, DAY_END, PIXELS_PER_HOUR} from "../constants";
+import {timeToPixels, pixelsToTime, addOneHour, isToday, isBlockInsideVisibleHours} from "../utils/timeUtils";
+import {PIXELS_PER_HOUR} from "../constants";
 
-const totalHeight=(DAY_END-DAY_START) * PIXELS_PER_HOUR + 35; //35 to account for the header
+const HEADER_HEIGHT = 35;
 
-const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
-    const hours = Array.from({length: 16}, (_,i)=>i+7); // 7 - 22
+interface Props {
+    day: any;
+    dayStart: number;
+    dayEnd: number;
+    onEmptyClick: (day: any, startTime: string, endTime: string) => void;
+    onBlockClick: (block: any, day: any) => void;
+}
+
+const DayColumn: React.FC<Props> = ({
+                                        day,
+                                        dayStart,
+                                        dayEnd,
+                                        onEmptyClick,
+                                        onBlockClick,
+                                    }) => {
+    const totalHeight = (dayEnd - dayStart) * PIXELS_PER_HOUR + HEADER_HEIGHT;
+
+    const hours = Array.from({length: dayEnd-dayStart}, (_,i)=>i+dayStart);
     const todayColumn = isToday(day.date);
 
     return (
-        <div style={styles.column}>
+        <div style={{
+            ...styles.column,
+            height: totalHeight,
+        }}>
             <div style={styles.header}>
                 {new Date(day.date).toLocaleDateString("en-US", {
                     weekday: "short",
@@ -24,8 +43,8 @@ const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const y = e.clientY - rect.top;
 
-                const startTime = pixelsToTime(y);
-                const endTime = addOneHour(startTime);
+                const startTime = pixelsToTime(y, dayStart);
+                const endTime = addOneHour(startTime, dayEnd);
 
                 onEmptyClick(day, startTime, endTime);
             }}>
@@ -34,7 +53,7 @@ const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
                         key={hour}
                         style={{
                             position: "absolute",
-                            top: (hour - DAY_START) * PIXELS_PER_HOUR, // 60px per hour
+                            top: (hour - dayStart) * PIXELS_PER_HOUR,
                             left: 0,
                             right: 0,
                             borderTop: "1px solid #ddd",
@@ -48,10 +67,19 @@ const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
                     </div>
                 ))}
 
-                {day.blocks.map((block: any) => {
-                    const top = timeToPixels(block.startTime);
+                {day.blocks
+                    .filter((block: any) =>
+                        isBlockInsideVisibleHours(
+                            block.startTime,
+                            block.endTime,
+                            dayStart,
+                            dayEnd
+                        )
+                    )
+                    .map((block: any) => {
+                        const top = timeToPixels(block.startTime, dayStart);
                     const height =
-                        timeToPixels(block.endTime) - timeToPixels(block.startTime) - 10;
+                        timeToPixels(block.endTime, dayStart) - timeToPixels(block.startTime, dayStart) - 10;
 
                     return (
                         <TimeBlock
@@ -61,7 +89,7 @@ const DayColumn: React.FC<any> = ({ day, onEmptyClick, onBlockClick }) => {
                             height={height}
                             onClick={(e: any) => {
                                 e.stopPropagation();
-                                onBlockClick(block);
+                                onBlockClick(block, day);
                             }}
                         />
                     );
@@ -76,7 +104,6 @@ const styles: { [key: string]: React.CSSProperties} = {
         flex: 1,
         display:"flex",
         flexDirection:"column",
-        height:totalHeight,
         cursor: "pointer",
     },
     header: {

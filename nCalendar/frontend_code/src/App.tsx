@@ -1,40 +1,30 @@
-// import React from 'react';
-// import logo from './logo.svg';
-// import './App.css';
-//
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.tsx</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-//
-// export default App;
-import React from "react";
-import Calendar from "./components/Calendar";
-import SchedulePage from "./pages/SchedulePage";
+import React, { useState } from "react";
 import AuthPage from "./pages/AuthPage";
+import SchedulePage from "./pages/SchedulePage";
+import { UserResponse } from "./services/api";
 
 function App() {
-  return (
-      <div>
-        <SchedulePage />
-      </div>
-  );
+    const [currentUser, setCurrentUser] = useState<UserResponse | null>(() => {
+        const stored = localStorage.getItem("currentUser");
+        return stored ? JSON.parse(stored) : null;
+    });
+
+    const handleLogout = () => {
+        localStorage.removeItem("currentUser");
+        setCurrentUser(null);
+    };
+
+    if (!currentUser) {
+        return <AuthPage onAuthenticated={setCurrentUser} />;
+    }
+
+    return (
+        <SchedulePage
+            currentUser={currentUser}
+            onUserUpdated={setCurrentUser}
+            onLogout={handleLogout}
+        />
+    );
 }
 
 export default App;

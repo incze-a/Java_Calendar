@@ -18,6 +18,11 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/email-exists")
+    public boolean emailExists(@RequestParam String email) {
+        return userService.emailExists(email);
+    }
+
     @PostMapping("/signup")
     public UserResponse signup(@RequestBody SignupRequest request) {
         return userService.signup(request);

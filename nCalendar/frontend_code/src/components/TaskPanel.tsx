@@ -12,9 +12,14 @@ interface Task {
     text: string;
     completed: boolean;
     date?: string;
+    completedDate?: string;
 }
 
-const TaskPanel: React.FC = () => {
+interface Props {
+    userId: number;
+}
+
+const TaskPanel: React.FC<Props> = ({userId}) => {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [isAdding, setIsAdding] = useState(false);
     const [newText, setNewText] = useState("");
@@ -28,7 +33,7 @@ const TaskPanel: React.FC = () => {
 
     const loadTasks = async () => {
         try {
-            const data = await getTasksForWeek(weekDate);
+            const data = await getTasksForWeek(weekDate, userId);
 
             if (Array.isArray(data)) {
                 setTasks(data);
@@ -66,7 +71,8 @@ const TaskPanel: React.FC = () => {
                 text: trimmed,
                 completed: false,
                 date: todayDate,
-            });
+            },
+                userId);
 
             setNewText("");
             setIsAdding(false);
@@ -82,8 +88,6 @@ const TaskPanel: React.FC = () => {
                 text: task.text,
                 completed: true,
                 date: task.date,
-
-                ADD A COMPLETED DATE THINGY
             });
 
             setSelectedTaskId(null);
@@ -99,8 +103,6 @@ const TaskPanel: React.FC = () => {
                 text: task.text,
                 completed: false,
                 date: task.date,
-
-                COMPLETED DATE NEEDS TO BE REMOVED HERE
             });
 
             setSelectedTaskId(null);

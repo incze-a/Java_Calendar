@@ -4,11 +4,17 @@ import DayColumn from "../components/DayColumn";
 import TaskPanel from "../components/TaskPanel";
 import AddEventModal from "../components/AddEventModal";
 import EditEventModal from "../components/EditEventModal";
-import { getWeekSchedule } from "../services/api";
+import {getWeekSchedule, UserResponse} from "../services/api";
 import Display from "../components/Display";
 import { getCurrentWeekStartString } from "../utils/timeUtils";
 
-const SchedulePage: React.FC = () => {
+interface Props {
+    currentUser: UserResponse;
+    onUserUpdated: (user: UserResponse) => void;
+    onLogout: () => void;
+}
+
+const SchedulePage: React.FC<Props> = ({ currentUser, onLogout, onUserUpdated }) => {
     const [week, setWeek] = useState<any[]>([]);
     const [showAdd, setShowAdd] = useState(false);
     const [selectedDay, setSelectedDay] = useState<string | null>(null);
@@ -19,7 +25,7 @@ const SchedulePage: React.FC = () => {
 
     const loadWeek = async () => {
         const currentWeekStart = getCurrentWeekStartString();
-        const data = await getWeekSchedule(currentWeekStart);
+        const data = await getWeekSchedule(currentWeekStart, currentUser.id);
 
         if (Array.isArray(data)) {
             setWeek(data);
@@ -39,13 +45,18 @@ const SchedulePage: React.FC = () => {
 
     return (
         <div>
-            <Navbar />
-
+            <Navbar
+                currentUser={currentUser}
+                onUserUpdated={onUserUpdated}
+                onLogout={onLogout}
+            />
             <div style={styles.container}>
                 {/* WHAT'S ON THE LEFT */}
                 <div style={styles.schedule}>
                     {week.map((day: any) => (
                         <DayColumn
+                            dayStart={Number(currentUser.userDayStart.slice(0,2))}
+                            dayEnd={Number(currentUser.userDayEnd.slice(0,2))}
                             key={day.date}
                             day={day}
                             onEmptyClick={(clickedDay: any, startTime: string, endTime: string) => {
@@ -54,17 +65,19 @@ const SchedulePage: React.FC = () => {
                                 setDefaultEndTime(endTime);
                                 setShowAdd(true);
                             }}
-                            onBlockClick={(block: any) => setSelectedBlock(block)}
-                        />
+                            onBlockClick={(block: any, clickedDay: any) => {
+                                setSelectedBlock(block);
+                                setSelectedDay(clickedDay);
+                            }}                        />
                     ))}
                 </div>
 
                 {/* TASKS AND DISPLAY ON THE RIGHT */}
                 <div style={styles.rightColumn}>
                     <div style={styles.displayBox}>
-                        <Display/>
+                        <Display username={currentUser.username}/>
                     </div>
-                    <TaskPanel/>
+                    <TaskPanel userId={currentUser.id}/>
 
                 </div>
 
@@ -73,6 +86,9 @@ const SchedulePage: React.FC = () => {
             {/* MODALS */}
             {showAdd && selectedDay && (
                 <AddEventModal
+                    userDayStart={Number(currentUser.userDayStart)}
+                    userDayEnd={Number(currentUser.userDayEnd)}
+                    userId={currentUser.id}
                     day={selectedDay}
                     defaultStartTime={defaultStartTime}
                     defaultEndTime={defaultEndTime}
@@ -81,8 +97,10 @@ const SchedulePage: React.FC = () => {
                 />
             )}
 
-            {selectedBlock && (
+            {selectedBlock && selectedDay && (
                 <EditEventModal
+                    userDayStart={Number(currentUser.userDayStart)}
+                    userDayEnd={Number(currentUser.userDayEnd)}
                     day={selectedDay}
                     onAdded={refreshAndClose}
                     block={selectedBlock}

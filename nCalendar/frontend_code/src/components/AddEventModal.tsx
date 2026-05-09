@@ -8,11 +8,13 @@ interface Props {
     defaultEndTime?: string,
     onAdded: () => void,
     onClose?: () => void,
+    userId: number,
+    userDayStart: number,
+    userDayEnd: number,
 }
 
-
-
-const AddEventModal: React.FC<Props> = ({day,
+const AddEventModal: React.FC<Props> = ({day, userId,
+    userDayStart, userDayEnd,
                                             defaultEndTime="",
                                             defaultStartTime="",
                                             onClose, onAdded}) => {
@@ -35,7 +37,8 @@ const AddEventModal: React.FC<Props> = ({day,
                     startTime,
                     endTime,
                     color: color || "#fd65c2",
-                });
+                },
+                    userId);
             } else {
                 await addEvent({
                     title,
@@ -43,7 +46,8 @@ const AddEventModal: React.FC<Props> = ({day,
                     startTime,
                     endTime,
                     color: color || "#bffd71",
-                });
+                },
+                    userId);
             }
 
             onAdded();
@@ -74,7 +78,7 @@ const AddEventModal: React.FC<Props> = ({day,
                             type="time"
                             style={styles.smallInput}
                             value={startTime}
-                            onChange={(e) => setStartTime(snapTo15(e.target.value))}
+                            onChange={(e) => setStartTime(snapTo15(e.target.value, userDayStart, userDayEnd))}
                         />
                     </div>
 
@@ -84,7 +88,7 @@ const AddEventModal: React.FC<Props> = ({day,
                             type="time"
                             style={styles.smallInput}
                             value={endTime}
-                            onChange={(e) => setEndTime(snapTo15(e.target.value))}
+                            onChange={(e) => setEndTime(snapTo15(e.target.value, userDayStart, userDayEnd))}
                         />
                     </div>
                 </div>
